@@ -26,3 +26,4 @@ class Test extends React.Component {
 }
 
 export default Test
+

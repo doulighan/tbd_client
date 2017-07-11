@@ -1,14 +1,19 @@
 import React, { Component } from 'react';
 import './App.css';
-import Test from './test.js'
+import Game from './components/Game.js'
 
 class App extends Component {
+  constructor(props) {
+    super(props) 
+  }
+
+
   render() {
     return (
       <div className="App">
-        <Test />
+        <Game cableApp={this.props.cableApp} />
       </div>
-    );
+    )
   }
 }
 
