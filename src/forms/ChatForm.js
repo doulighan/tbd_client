@@ -5,13 +5,16 @@ class ChatForm extends React.Component {
   constructor() {
     super()
     this.state = {
-      message: ""
+      message: []
     }
   }
 
   handleChange = (e) => {
+    debugger
+    let newMsg = this.state.message
+    newMsg.push(e.key)
     this.setState({
-      message: e.target.value
+      message: newMsg
     })
   }
 
@@ -29,7 +32,7 @@ class ChatForm extends React.Component {
     return (
       <div>
         <form onSubmit={this.handleSubmit}>
-          <input type='text' name="textbox" placeholder='type...' onChange={this.handleChange} value={this.state.message} />
+          <input type='text' name="textbox" placeholder='type...' onKeyDown={this.handleChange} value={this.state.message.join('')} />
           <button type='submit' >send</button>
         </form>
       </div>

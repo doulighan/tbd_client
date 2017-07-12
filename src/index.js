@@ -9,7 +9,10 @@ const CableApp = {}
 
 CableApp.cable = actionCable.createConsumer(`ws://${window.location.hostname}:3000/test`)
 
-console.log(CableApp)
-ReactDOM.render(<App cableApp={CableApp} />, document.getElementById('root'));
+
+
+ReactDOM.render(
+  <App cableApp={CableApp}/>,
+  document.getElementById('root'));
 
 registerServiceWorker();

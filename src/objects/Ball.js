@@ -1,10 +1,11 @@
-    const PI = Math.PI
+const PI = Math.PI
+
 class Ball {
   constructor(x, y, screen) {
     this.x = x 
     this.y = y 
     this.screen = screen
-    this.dir = Math.random() * (PI*2) 
+    this.dir = Math.PI + 1
     this.r = screen.width / 65
     this.movespeed = 7
   }
