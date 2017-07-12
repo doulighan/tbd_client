@@ -4,19 +4,18 @@ import Message from './Message.js'
 class ChatWindow extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {
-
-    }
-  }
-
-  mapMessages = () => {
-    this.props.messages.map( m => { <Message content={m} /> })
   }
 
   render () {
+    const messages = this.props.messages.map( m => (
+      <li>
+        <Message message={m} />
+      </li>
+      )
+    )
     return (
       <div>
-        {this.mapMessages()}
+        <ul>{messages}</ul>
       </div>
     )
   }

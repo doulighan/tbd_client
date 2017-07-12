@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
-import Game from './components/Game.js'
+import GameContainer from './components/GameContainer.js'
 
 class App extends Component {
   constructor(props) {
@@ -11,7 +11,7 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <Game cableApp={this.props.cableApp} />
+        <GameContainer cableApp={this.props.cableApp} />
       </div>
     )
   }

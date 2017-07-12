@@ -15,10 +15,20 @@ class ChatForm extends React.Component {
     })
   }
 
+  handleSubmit = (e) => {
+    e.preventDefault() 
+    const message = e.target.textbox.value
+    this.props.handleSubmit(message)
+
+    this.setState({
+      message: ""
+    })
+  }
+
   render () {
     return (
       <div>
-        <form onSubmit={this.props.handleSubmit}>
+        <form onSubmit={this.handleSubmit}>
           <input type='text' name="textbox" placeholder='type...' onChange={this.handleChange} value={this.state.message} />
           <button type='submit' >send</button>
         </form>
