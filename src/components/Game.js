@@ -21,28 +21,7 @@ class Game extends React.Component {
     this.player2Ready = false
     this.isPlayer1 = false
     this.isPlayer2 = false
-
-    this.gameState = {
-      isPlayer1: this.isPlayer1,
-      isPlayer2: this.isPlayer2,
-      player1Ready: this.player1Ready,
-      player2Ready: this.player2Ready,
-      player1: {
-        x: this.player1.x,
-        y: this.player1.y,
-        dir: this.player1.dir
-      },
-      player2: {
-        x: this.player2.x,
-        y: this.player2.y,
-        dir: this.player2.dir
-      },
-      ball: {
-        x: this.ball.x,
-        y: this.ball.y,
-        dir: this.ball.dir
-      }
-    }
+    this.recievedState = {}
   }
 
 
@@ -52,46 +31,50 @@ class Game extends React.Component {
     this.dest.width = WIDTH
     this.dest.height = HEIGHT
 
-    setInterval(this.gameLoop.bind(this), 1000 / 60)
+    setInterval(this.gameLoop.bind(this), 1000 / 30)
 
     this.props.cableApp.gameState = this.props.cableApp.cable.subscriptions.create({channel: "GameChannel", room: "game" },
     {
-      received: (data) => this.handleRecieved(data)
+      received: (data) => this.handleRecieved(data.content)
     })
   }
 
   handleRecieved(data) {
-    this.player1Ready = data.player1Ready
-    this.player2Ready = data.player2Ready
-    if(this.isPlayer1) {
-      this.player2.x = data.player2.x,
-      this.player2.y = data.player2.y,
-      this.plauer2.dir = data.player2.dir
-    }
-    if(this.isPlayer2) {
-      this.player1.x = data.player1.x,
-      this.player1.y = data.player1.y,
-      this.plauer1.dir = data.player1.dir
+    console.log(data)
+    this.recievedState = {
+      player1ready: data.player1Ready,
+      ready2: data.player2Ready,
+      x: data.x,
+      y: data.y,
+      dir: data.dir
     }
   }
 
   sendState = () => { 
-    this.props.cableApp.gameState.send({content: this.gameState})
-  }
-
-  createState = () => {
-    this.gameState ={
-      ball: {
-        x: this.ball.x,
-        y: this.ball.y,
-        dir: this.ball.dir
-      }
+    if(this.player1) {
+      this.props.cableApp.gameState.send({
+        content: {
+          player1Ready: this.player1Ready,
+          x: this.player2.x,
+          y: this.player2.y,
+          dir: this.player2.dir
+        }}
+      )
+    }
+    if(this.player2) {
+      this.props.cableApp.gameState.send({
+        content: {
+          player2Ready: this.player2Ready,
+          x: this.player1.x,
+          y: this.player1.y,
+          dir: this.player1.dir
+        }}
+      )
     }
   }
 
   bePlayer1 = (e) => {
     e.preventDefault()
-    console.log(e)
     document.addEventListener('keyup', this.handleUp1.bind(this))
     document.addEventListener('keydown', this.handleDown1.bind(this))
     this.player1Ready = true
@@ -102,11 +85,9 @@ class Game extends React.Component {
     e.preventDefault()
     document.addEventListener('keyup', this.handleUp2.bind(this))
     document.addEventListener('keydown', this.handleDown2.bind(this))
-    this.player2Ready = this.player2
+    this.player2Ready = true
     this.isPlayer2 = true
   }
-
-
 
   handleDown1(event) {
     event.preventDefault()
@@ -147,12 +128,23 @@ class Game extends React.Component {
   }
 
   update() {
+    if(this.isPlayer1) {
+      this.player2.x = this.recievedState.x
+      this.player2.y =  this.recievedState.y
+      this.dir = this.recievedState.dir
+      this.player2Ready = this.recievedState.ready2
+    }
+    if(this.isPlayer2) {
+      this.player1.x = this.recievedState.x
+      this.player1.y =  this.recievedState.y
+      this.dir = this.recievedState.dir
+      this.player1Ready = this.recievedState.ready1
+    }
+    
     this.player1.update()
     this.player2.update()
     this.ball.update()
-    
-    this.createState()
-    this.sendState()
+
   }
 
   gameRender() {
@@ -163,11 +155,11 @@ class Game extends React.Component {
     this.ball.render()
 
     this.destCTX.drawImage(this.canvas, 0, 0)
-    // this.forceUpdate() 
+    this.forceUpdate() 
   }
 
   gameLoop() {
-    console.log(this.player1Ready, this.player2Ready)
+    this.sendState()
     if(this.player1Ready && this.player2Ready) {
       this.update()
       this.gameRender()
@@ -183,6 +175,8 @@ class Game extends React.Component {
         <Button type="submit" onClick={this.bePlayer1}>Player 1</Button>
         <Button type="submit" onClick={this.bePlayer2}>Player 2</Button>
         <canvas id="imCanvas" ref="dest" style={{'backgroundColor':'white'}}/>
+        <h2>P1?: {this.player1Ready} P2? {this.player2Ready} </h2>
+        <h2>You are p1?: {this.isPlayer1} </h2>
       </div>
     </Segment>
     

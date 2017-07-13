@@ -8,7 +8,7 @@ class Player {
     this.x =  (screen.width/8) - (this.width / 2)
     this.y = (screen.height/2) - (this.height / 2)
     this.dir = 0
-    this.movespeed = 5
+    this.movespeed = 8
     this.color = color
     this.isPlayer2 = isPlayer2 
 

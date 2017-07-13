@@ -36,13 +36,12 @@ class SocketAdapter extends React.Component {
             <Game cableApp={this.props.cableApp}/>
           </div>
         </Grid.Column>
-        <Grid.Column>
-          <ChatWindow messages={this.state.messages}/>
-          <ChatForm handleSubmit={this.handleSubmit}/>
-        </Grid.Column>
       </Grid>
     )
   }
 }
+
+//<ChatWindow messages={this.state.messages}/>
+//<ChatForm handleSubmit={this.handleSubmit}/>
 
 export default SocketAdapter

@@ -7,7 +7,7 @@ class Ball {
     this.screen = screen
     this.dir = Math.PI + 1
     this.r = screen.width / 65
-    this.movespeed = 7
+    this.movespeed = 10
   }
 
   update() {
