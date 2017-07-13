@@ -66,34 +66,34 @@ class Game extends React.Component {
       this.player1.x = data.player1.x,
       this.player1.y = data.player1.y,
       this.isPlayer1Ready = data.player1.ready,
-      this.ball.x = data.ball.x,
-      this.ball.y = data.ball.y
+      this.ball.x = data.player1.ball.x,
+      this.ball.y = data.player1.ball.y
     }
   }
 
-  sendState = () => { 
+  sendState = () => {
     if(this.player1) {
       this.props.cableApp.gameState.send({
-        player1: {
-          x: this.player1.x,
-          y: this.player1.y,
-          ready: this.isPlayer1Ready
-        },
-        ball: {
-          x: this.ball.x,
-          y: this.ball.y,
-          dir: this.ball.dir
-        }
-      )
+          player1: {
+            x: this.player1.x,
+            y: this.player1.y,
+            ready: this.isPlayer1Ready
+          },
+          ball: {
+            x: this.ball.x,
+            y: this.ball.y,
+            dir: this.ball.dir
+          }
+      })
     }
     if(this.player2) {
       this.props.cableApp.gameState.send({
-        player2: {
-          x: this.player2.x,
-          y: this.player2.y,
-          ready: this.isPlayer2Ready
-        },
-      )
+          player2: {
+            x: this.player2.x,
+            y: this.player2.y,
+            ready: this.isPlayer2Ready
+          }
+      })
     }
   }
 
