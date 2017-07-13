@@ -3,9 +3,11 @@ import Player from '../objects/Player'
 import Screen from '../objects/Screen'
 import Ball from '../objects/Ball'
 import {Segment, Button, Form} from 'semantic-ui-react'
+import io from 'socket.io-client'
    
     const WIDTH = 650
     const HEIGHT = WIDTH / 1.625
+    const socket = io('http://192.168.5.178:3000')
 
 class Game extends React.Component {
 
@@ -17,12 +19,8 @@ class Game extends React.Component {
     this.ball = new Ball(this.screen.width/2, this.screen.height/2, this.screen)
     this.player1 = new Player(this.screen, "blue", false, this.ball)
     this.player2 = new Player(this.screen, "red", true, this.ball)
-    this.player1Ready = false
-    this.player2Ready = false
-    this.isPlayer1 = false
-    this.isPlayer2 = false
+    this.whichPlayer = ''
   }
-
 
   componentDidMount() {
     this.dest = this.refs.dest
@@ -30,66 +28,71 @@ class Game extends React.Component {
     this.dest.width = WIDTH
     this.dest.height = HEIGHT
 
-    setInterval(this.gameLoop.bind(this), 1000)
-
-    this.props.cableApp.gameState = this.props.cableApp.cable.subscriptions.create({channel: "GameChannel", room: "game" },
-    {
-      received: (data) => this.handleRecieved(data.content)
+    socket.on('connect', () => {
+      console.log('socket connected', socket.id)
     })
-  }
-
-  handleRecieved = (data) => {
-    console.log(data)
-    if(this.isPlayer1) {
-      this.player2.x = data.player2.x
-      this.player2.y = data.player2.y
-      this.player2Ready = data.player2.ready
-    }
-    if(this.isPlayer2) {
-      this.player1.x = data.player1.x
-      this.player1.y = data.player1.y
-      this.player1Ready = data.player1.ready
-      this.ball.x = data.player1.ball.x
-      this.ball.y = data.player1.ball.y
-      this.ball.dir = data.ball.dir
-    }
-  }
-
-  sendState = () => {
-    this.props.cableApp.gameState.send({
-      player1: {
-          x: this.player1.x,
-          y: this.player1.y,
-          ready: this.player1Ready
-        },
-      ball: {
-        x: this.ball.x,
-        y: this.ball.y,
-        dir: this.ball.dir,
-      },
-      player2: {
-        x: this.player2.x,
-        y: this.player2.y,
-        ready: this.player2Ready
-      }
-    })
+    socket.on('game', (p) => this.whichPlayer = p )
+    console.log(this.whichPlayer)
+    socket.on('START', msg => this.startGame(msg))
   }
   
-
-  bePlayer1 = (e) => {
-    e.preventDefault()
-    document.addEventListener('keyup', this.handleUp1.bind(this))
-    document.addEventListener('keydown', this.handleDown1.bind(this))
-    this.player1Ready = true
-    this.isPlayer1 = true
+  startGame(msg) {
+    if(msg === 'START') {
+      console.log("Server says start")
+      this.bindKeys()
+      setInterval(this.gameLoop.bind(this), 1000 / 35)
+    }
   }
 
-  bePlayer2 = (e) => {
-    e.preventDefault()
-    document.addEventListener('keyup', this.handleUp2.bind(this))
-    document.addEventListener('keydown', this.handleDown2.bind(this))
-    this.player2Ready = true
-    this.isPlayer2 = true
+  bindKeys() {
+    if(this.whichPlayer === 'P1') {
+      console.log(this.whichPlayer, 'keys')
+      document.addEventListener('keyup', this.handleUp1.bind(this))
+      document.addEventListener('keydown', this.handleDown1.bind(this))
+    } else if (this.whichPlayer === 'P2') {
+      console.log(this.whichPlayer, 'keys')
+      document.addEventListener('keyup', this.handleUp2.bind(this))
+      document.addEventListener('keydown', this.handleDown2.bind(this))
+    }
+  }  
+
+  sendToServer() {
+    var data = {}
+    if(this.whichPlayer === 'P1'){
+      data = {
+        P1: {
+          x: this.player1.x,
+          y: this.player1.y
+        },
+        ball: {
+          x: this.ball.x,
+          y: this.ball.y,
+        }
+      }
+    }
+    if(this.whichPlayer === 'P2'){
+      data = {
+        P2: {
+          x: this.player2.x,
+          y: this.player2.y
+        }
+      }
+    }
+    socket.emit(this.whichPlayer.toString(), JSON.stringify(data))
+  }
+
+  fromServer(data) {
+    if(data == null) {return}
+    if(this.whichPlayer === "P1") {
+      this.player2.x = data.P2.x 
+      this.player2.y = data.P2.y
+    }
+    if(this.whichPlayer === "P2") {
+      this.player1.x = data.P1.x 
+      this.player1.y = data.P1.y 
+      this.ball.x = data.ball.x 
+      this.ball.y = data.ball.y 
+    }
   }
 
   handleDown1(event) {
@@ -131,29 +134,37 @@ class Game extends React.Component {
   }
 
   update() {
-    this.player1.update()
-    this.player2.update()
-    this.ball.update()
+    if(this.whichPlayer === 'P1') {
+      this.player1.update()
+      this.player2.checkCollision()
+      this.ball.update()
+    }
+    if(this.whichPlayer === 'P2') {
+      this.player2.update()
+      this.player1.checkCollision()
+      // this.ball.checkCollision()
+    }
   }
 
   gameRender() {
     this.screen.ctx.clearRect(0, 0, this.screen.width, this.screen.height)
     this.destCTX.clearRect(0, 0, this.screen.width, this.screen.height)
+    this.ball.render()
     this.player1.render()
     this.player2.render()
-    this.ball.render()
+
 
     this.destCTX.drawImage(this.canvas, 0, 0)
     // this.forceUpdate() 
   }
 
   gameLoop() {
-    sendState()
-    if(this.player1Ready && this.player2Ready) {
-      this.update()
-      this.gameRender()
-    }
+    this.update()
+    this.sendToServer()
+    socket.on('in', (data) => this.fromServer(JSON.parse(data)))
+    this.gameRender()
   }
+  
 
 
 

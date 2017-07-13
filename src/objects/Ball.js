@@ -7,7 +7,7 @@ class Ball {
     this.screen = screen
     this.dir = Math.PI + 1
     this.r = screen.width / 65
-    this.movespeed = 10
+    this.movespeed = 6
   }
 
   update() {
@@ -35,7 +35,6 @@ class Ball {
     if(yy > this.screen.height - this.r) {
       dd = (PI*2 - this.dir)
       yy = this.screen.height - this.r
-      console.log(yy)
     }
     if(dd === PI/2) dd = (PI/2) + .1
     if(dd === PI * (3/2)) dd = (PI * (3/2)) - .1
@@ -60,6 +59,7 @@ class Ball {
   checkPlayer2Collision(px, py, pw, ph) {
     if(this.x < px + pw + this.r && this.x > px + pw && this.y > py && this.y < py+ph) {
       this.x = px + pw + this.r 
+      console.log('collision')
       if(this.y - py < ph / 2) {
         ((this.y - py) / py) * (PI / 4)
       }
@@ -72,7 +72,7 @@ class Ball {
     } 
   }
   render() {
-    this.screen.ctx.moveTo(this.x, this.y,)
+    this.screen.ctx.moveTo(this.x, this.y)
     this.screen.ctx.beginPath()
     this.screen.ctx.arc(this.x, this.y, this.r, 0, PI * 2, false)
     this.screen.ctx.closePath()
