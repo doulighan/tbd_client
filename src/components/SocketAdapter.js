@@ -14,10 +14,10 @@ class SocketAdapter extends React.Component {
   }
 
   componentDidMount() {
-    this.props.cableApp.messages = this.props.cableApp.cable.subscriptions.create({channel: "Messages", room: "Message" },
-      {
-        received: (message) => this.setState({ messages: [message, ...this.state.messages] })
-      })
+    // this.props.cableApp.messages = this.props.cableApp.cable.subscriptions.create({channel: "Messages", room: "Message" },
+    //   {
+    //     received: (message) => this.setState({ messages: [message, ...this.state.messages] })
+    //   })
   } 
 
 

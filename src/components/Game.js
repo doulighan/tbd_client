@@ -21,24 +21,6 @@ class Game extends React.Component {
     this.player2Ready = false
     this.isPlayer1 = false
     this.isPlayer2 = false
-    
-    this.gameState = {
-      player1: {
-        x: this.player1.x,
-        y: this.player1.y,
-        ready: this.isPlayer1Ready
-      },
-      player2: {
-        x: this.player2.x,
-        y: this.player2.y,
-        ready: this.isPlayer2Ready
-      },
-      ball: {
-        x: this.ball.x,
-        y: this.ball.y,
-        dir: this.ball.dir
-      }
-    }
   }
 
 
@@ -48,7 +30,7 @@ class Game extends React.Component {
     this.dest.width = WIDTH
     this.dest.height = HEIGHT
 
-    setInterval(this.gameLoop.bind(this), 1000 / 30)
+    setInterval(this.gameLoop.bind(this), 1000)
 
     this.props.cableApp.gameState = this.props.cableApp.cable.subscriptions.create({channel: "GameChannel", room: "game" },
     {
@@ -56,46 +38,43 @@ class Game extends React.Component {
     })
   }
 
-  handleRecieved(data) {
+  handleRecieved = (data) => {
+    console.log(data)
     if(this.isPlayer1) {
-      this.player2.x = data.player2.x,
-      this.player2.y = data.player2.y,
-      this.isPlayer2Ready = data.player2.ready
+      this.player2.x = data.player2.x
+      this.player2.y = data.player2.y
+      this.player2Ready = data.player2.ready
     }
     if(this.isPlayer2) {
-      this.player1.x = data.player1.x,
-      this.player1.y = data.player1.y,
-      this.isPlayer1Ready = data.player1.ready,
-      this.ball.x = data.player1.ball.x,
+      this.player1.x = data.player1.x
+      this.player1.y = data.player1.y
+      this.player1Ready = data.player1.ready
+      this.ball.x = data.player1.ball.x
       this.ball.y = data.player1.ball.y
+      this.ball.dir = data.ball.dir
     }
   }
 
   sendState = () => {
-    if(this.player1) {
-      this.props.cableApp.gameState.send({
-          player1: {
-            x: this.player1.x,
-            y: this.player1.y,
-            ready: this.isPlayer1Ready
-          },
-          ball: {
-            x: this.ball.x,
-            y: this.ball.y,
-            dir: this.ball.dir
-          }
-      })
-    }
-    if(this.player2) {
-      this.props.cableApp.gameState.send({
-          player2: {
-            x: this.player2.x,
-            y: this.player2.y,
-            ready: this.isPlayer2Ready
-          }
-      })
-    }
+    this.props.cableApp.gameState.send({
+      player1: {
+          x: this.player1.x,
+          y: this.player1.y,
+          ready: this.player1Ready
+        },
+      ball: {
+        x: this.ball.x,
+        y: this.ball.y,
+        dir: this.ball.dir,
+      },
+      player2: {
+        x: this.player2.x,
+        y: this.player2.y,
+        ready: this.player2Ready
+      }
+    })
   }
+  
 
   bePlayer1 = (e) => {
     e.preventDefault()
@@ -165,11 +144,11 @@ class Game extends React.Component {
     this.ball.render()
 
     this.destCTX.drawImage(this.canvas, 0, 0)
-    this.forceUpdate() 
+    // this.forceUpdate() 
   }
 
   gameLoop() {
-    this.sendState()
+    sendState()
     if(this.player1Ready && this.player2Ready) {
       this.update()
       this.gameRender()
