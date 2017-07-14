@@ -6,33 +6,38 @@ import { Segment, Grid, Header } from 'semantic-ui-react'
 
 import io from 'socket.io-client'
 
-const socket = io('http://192.168.5.178:3000')
+var sock
+
+
+
 
 class SocketAdapter extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
       messages: [],
-      player: ""
     }
   }
 
-  setPlayer(p = "") {
+  setPlayer(e) {
+    e.preventDefault()
     this.setState({
-      player: p
+      player: e.target.player.value
     })
   }
 
   componentDidMount() {
-    socket.on('connect', () => {
-      console.log('socket connected in Socket adapter')
+    setTimeout(this.connectSocket, 10000)
+  }
+  connectSocket() {
+    sock = io('http://192.168.5.178:3000')
+    sock.on('connect', () => {
+      console.log('sock connected in sock adapter')
     })
 
-    socket.on('messageResp', (mes) => {
+    sock.on('messageResp', (mes) => {
       this.setState({messages: [
-        {player: this.state.player,
-          message: mes
-        },
+        mes,
         ...this.state.messages
       ]})
       console.log('message emmited', this.state.messages)})
@@ -47,14 +52,14 @@ class SocketAdapter extends React.Component {
         <center>
         <Header border='5px' inverted as='h1'>PonGo</Header>
          <div id="gamediv container">
-             <Game socket={socket} setPlayer={this.setPlayer.bind(this)}/>
+             <Game />
          </div>
          </center>
         </div>
         <div>
         <Segment raised>
           <ChatWindow messages={this.state.messages}/>
-          <ChatForm socket={socket} />
+          <ChatForm  setPlayer={this.setPlayer.bind(this)} socket={sock}/>
         </Segment>
         </div>
       </div>

@@ -7,8 +7,7 @@ import io from 'socket.io-client'
    
 const WIDTH = 900
 const HEIGHT = WIDTH / 1.8
-
-var socket
+const socket = io('http://192.168.5.178:3000')
 
 class Game extends React.Component {
 
@@ -28,18 +27,13 @@ class Game extends React.Component {
     this.destCTX = this.dest.getContext('2d')
     this.dest.width = WIDTH
     this.dest.height = HEIGHT
-    socket = this.props.socket
 
     socket.on('connect', () => {
       console.log('socket connected', socket.id)
     })
-    socket.on('game', (p) => this.whichPlayer = p)
-    if(this.whichPlayer = 'P1') {
-      this.props.setPlayer('Player 1')
-    }
-    if(this.whichPlayer = 'P2') {
-      this.props.setPlayer('Player 2')
-    }
+
+    socket.on('game', (p) => this.whichPlayer = p )
+    console.log(this.whichPlayer)
     socket.on('START', msg => this.startGame(msg))
   }
   
@@ -234,7 +228,8 @@ class Game extends React.Component {
 
   gameLoop() {
     this.update()
-    socket.emit(this.whichPlayer.toString(), JSON.stringify(this.sendToServer()))
+    const json = JSON.stringify(this.sendToServer())
+    socket.emit(this.whichPlayer.toString(), json)
     this.gameRender()
   }
   

@@ -6,22 +6,28 @@ class ChatForm extends React.Component {
   constructor() {
     super()
     this.state = {
-      message: ''
+      message: '',
     }
   }
 
   handleChange = (e) => {
+    if(e.key === 'backspace') {
+      this.setState({
+        message: this.state.splice(0, -1)
+      })
+    }
+    if(e.key.toString().length > 1) { return }
     this.setState({
-      [e.target.name]: e.target.value
+      message: this.state.message + e.key
     })
   }
 
+
   handleSubmit = (e) => {
     e.preventDefault()
-    const player = e.target.player.value
-    const message = e.target.message.value
+    const message = this.state.message
+    console.log(message)
     this.props.socket.emit('message', message )
-
     this.setState({
       message: ''
     })
@@ -31,7 +37,7 @@ class ChatForm extends React.Component {
     return (
       <div>
         <Form onSubmit={this.handleSubmit}>
-          <TextArea autoHeight name="message" placeholder='message' onChange={this.handleChange} />
+          <TextArea autoHeight name="message" value={this.state.message} placeholder='message' onKeyDown={this.handleChange} />
           <Button type='submit'>send</Button>
         </Form>
       </div>
