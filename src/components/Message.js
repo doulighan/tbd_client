@@ -3,7 +3,8 @@ import React from 'react'
 const Message = ({message}) => {
   return (
     <div>
-      {message.content}
+      <h4>{message.player}</h4>
+      <p>   {message.message}</p>
     </div>
   )
 }

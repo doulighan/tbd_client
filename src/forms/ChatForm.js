@@ -1,40 +1,39 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
+import { Button, Dropdown, Form, Input, TextArea } from 'semantic-ui-react'
 
 class ChatForm extends React.Component {
   constructor() {
     super()
     this.state = {
-      message: []
+      message: ''
     }
   }
 
   handleChange = (e) => {
-    debugger
-    let newMsg = this.state.message
-    newMsg.push(e.key)
     this.setState({
-      message: newMsg
+      [e.target.name]: e.target.value
     })
   }
 
   handleSubmit = (e) => {
-    e.preventDefault() 
-    const message = e.target.textbox.value
-    this.props.handleSubmit(message)
+    e.preventDefault()
+    const player = e.target.player.value
+    const message = e.target.message.value
+    this.props.socket.emit('message', message )
 
     this.setState({
-      message: ""
+      message: ''
     })
   }
 
   render () {
     return (
       <div>
-        <form onSubmit={this.handleSubmit}>
-          <input type='text' name="textbox" placeholder='type...' onKeyDown={this.handleChange} value={this.state.message.join('')} />
-          <button type='submit' >send</button>
-        </form>
+        <Form onSubmit={this.handleSubmit}>
+          <TextArea autoHeight name="message" placeholder='message' onChange={this.handleChange} />
+          <Button type='submit'>send</Button>
+        </Form>
       </div>
     )
   }

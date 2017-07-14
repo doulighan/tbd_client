@@ -8,9 +8,10 @@ class Player {
     this.x =  (screen.width/8) - (this.width / 2)
     this.y = (screen.height/2) - (this.height / 2)
     this.dir = 0
-    this.movespeed = 5
+    this.movespeed = 5.5
     this.color = color
     this.isPlayer2 = isPlayer2 
+    this.score = 0
 
     if (isPlayer2) {
       this.x = this.screen.width - (screen.width/8) - (this.width / 2)
@@ -40,8 +41,12 @@ class Player {
   }
 
   render() {
-    this.screen.ctx.fillStyle = this.color
-    this.screen.ctx.fillRect(this.x, this.y, this.width, this.height)
+      this.screen.ctx.shadowColor = 'black'
+      this.screen.ctx.shadowBlur = 25
+      this.screen.ctx.shadowOffsetX = 10
+      this.screen.ctx.shadowOffsetY = 10
+      this.screen.ctx.fillStyle = this.color
+      this.screen.ctx.fillRect(this.x, this.y, this.width, this.height)
   }
 
 }

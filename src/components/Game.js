@@ -5,9 +5,10 @@ import Ball from '../objects/Ball'
 import {Segment, Button, Form} from 'semantic-ui-react'
 import io from 'socket.io-client'
    
-    const WIDTH = 650
-    const HEIGHT = WIDTH / 1.625
-    const socket = io('http://192.168.5.178:3000')
+const WIDTH = 900
+const HEIGHT = WIDTH / 1.8
+
+var socket
 
 class Game extends React.Component {
 
@@ -17,8 +18,8 @@ class Game extends React.Component {
     this.canvas.style.display = 'none'
     this.screen = new Screen(this.canvas, WIDTH, HEIGHT)
     this.ball = new Ball(this.screen.width/2, this.screen.height/2, this.screen)
-    this.player1 = new Player(this.screen, "blue", false, this.ball)
-    this.player2 = new Player(this.screen, "red", true, this.ball)
+    this.player1 = new Player(this.screen, "yellow", false, this.ball)
+    this.player2 = new Player(this.screen, "#4f5e68", true, this.ball)
     this.whichPlayer = ''
   }
 
@@ -27,12 +28,18 @@ class Game extends React.Component {
     this.destCTX = this.dest.getContext('2d')
     this.dest.width = WIDTH
     this.dest.height = HEIGHT
+    socket = this.props.socket
 
     socket.on('connect', () => {
       console.log('socket connected', socket.id)
     })
-    socket.on('game', (p) => this.whichPlayer = p )
-    console.log(this.whichPlayer)
+    socket.on('game', (p) => this.whichPlayer = p)
+    if(this.whichPlayer = 'P1') {
+      this.props.setPlayer('Player 1')
+    }
+    if(this.whichPlayer = 'P2') {
+      this.props.setPlayer('Player 2')
+    }
     socket.on('START', msg => this.startGame(msg))
   }
   
@@ -40,7 +47,10 @@ class Game extends React.Component {
     if(msg === 'START') {
       console.log("Server says start")
       this.bindKeys()
-      setInterval(this.gameLoop.bind(this), 1000 / 35)
+      setInterval(this.gameLoop.bind(this), 1000 / 50)
+      socket.on('in', (data) => this.fromServer(JSON.parse(data)))
+      socket.on('p1s', (data) => this.score1FromServer(data))
+      socket.on('p2s', (data) => this.score2FromServer(data))
     }
   }
 
@@ -49,7 +59,8 @@ class Game extends React.Component {
       console.log(this.whichPlayer, 'keys')
       document.addEventListener('keyup', this.handleUp1.bind(this))
       document.addEventListener('keydown', this.handleDown1.bind(this))
-    } else if (this.whichPlayer === 'P2') {
+    } 
+    if (this.whichPlayer === 'P2') {
       console.log(this.whichPlayer, 'keys')
       document.addEventListener('keyup', this.handleUp2.bind(this))
       document.addEventListener('keydown', this.handleDown2.bind(this))
@@ -78,7 +89,7 @@ class Game extends React.Component {
         }
       }
     }
-    socket.emit(this.whichPlayer.toString(), JSON.stringify(data))
+    return data
   }
 
   fromServer(data) {
@@ -92,6 +103,19 @@ class Game extends React.Component {
       this.player1.y = data.P1.y 
       this.ball.x = data.ball.x 
       this.ball.y = data.ball.y 
+    }
+  }
+  
+  score1FromServer(data) {
+    if(data == null) {return}
+    if(this.whichPlayer === "P2") {
+      this.player1.score = data 
+    }
+  } 
+  score2FromServer(data) {
+    if(data == null) {return}
+    if(this.whichPlayer === "P2") {
+      this.player2.score = data
     }
   }
 
@@ -133,11 +157,33 @@ class Game extends React.Component {
     } 
   }
 
+  player1Score() {
+    this.player1.score++
+    socket.emit('p1score', this.player1.score)
+    // this.screen.ctx.fillRect(0, 0, this.screen.width, this.screen.height)
+    // setTimeout(100, () => this.ball = new Ball(this.screen.width/2, this.screen.height/2, this.screen))
+  }
+
+  player2Score() {
+    this.player2.score++
+    socket.emit('p2score', this.player2.score)
+    // this.screen.ctx.fillRect(0, 0, this.screen.width, this.screen.height)
+    // setTimeout(100, () => this.ball = new Ball(this.screen.width/2, this.screen.height/2, this.screen))
+    
+
+  }
+
   update() {
     if(this.whichPlayer === 'P1') {
       this.player1.update()
       this.player2.checkCollision()
-      this.ball.update()
+      var b = this.ball.update()
+      if(b == 'P1') {
+        this.player1Score()
+      }
+      if(b == 'P2') {
+        this.player2Score()
+      }
     }
     if(this.whichPlayer === 'P2') {
       this.player2.update()
@@ -147,21 +193,48 @@ class Game extends React.Component {
   }
 
   gameRender() {
-    this.screen.ctx.clearRect(0, 0, this.screen.width, this.screen.height)
-    this.destCTX.clearRect(0, 0, this.screen.width, this.screen.height)
+    this.screen.ctx.clearRect(1, 1, this.screen.width, this.screen.height)
+    this.destCTX.clearRect(1, 1, this.screen.width, this.screen.height)
+    this.screen.ctx.strokeStyle = 'yellow'
+    this.screen.ctx.lineWidth = '6'
+    this.screen.ctx.beginPath()
+    this.screen.ctx.moveTo(1,1)
+    this.screen.ctx.lineTo(1, this.screen.height)
+    this.screen.ctx.lineTo((this.screen.width/2) - 2, this.screen.height)
+    this.screen.ctx.lineTo((this.screen.width/2) - 2, 1)
+    this.screen.ctx.lineTo(1,1)
+    this.screen.ctx.stroke()
+    this.screen.ctx.strokeStyle = '#4f5e68'
+    this.screen.ctx.lineWidth = '6'
+    this.screen.ctx.beginPath()
+    this.screen.ctx.moveTo(this.screen.width/2  + 1,2)
+    this.screen.ctx.lineTo(this.screen.width/2 + 1, this.screen.height)
+    this.screen.ctx.lineTo(this.screen.width - 1, this.screen.height)
+    this.screen.ctx.lineTo(this.screen.width - 1, 2)
+    this.screen.ctx.lineTo(this.screen.width/2 + 1, 2)
+    this.screen.ctx.stroke()
+
+    this.screen.ctx.shadowBlur = 0
+    this.screen.ctx.shadowOffsetX = 0
+    this.screen.ctx.shadowOffsetY = 0
+    this.screen.ctx.font = '50px ariel'
+    this.screen.ctx.fillStyle = 'yellow'
+    this.screen.ctx.fillText(this.player1.score, 400, 50)
+    this.screen.ctx.fillStyle = '#4f5e68'
+    this.screen.ctx.fillText(this.player2.score, 475, 50)
     this.ball.render()
+
     this.player1.render()
     this.player2.render()
 
 
     this.destCTX.drawImage(this.canvas, 0, 0)
-    // this.forceUpdate() 
+
   }
 
   gameLoop() {
     this.update()
-    this.sendToServer()
-    socket.on('in', (data) => this.fromServer(JSON.parse(data)))
+    socket.emit(this.whichPlayer.toString(), JSON.stringify(this.sendToServer()))
     this.gameRender()
   }
   
@@ -172,16 +245,14 @@ class Game extends React.Component {
     return (
     <Segment color={'olive'} inverted tertiary>
       <div id="game-window">
-        <Button type="submit" onClick={this.bePlayer1}>Player 1</Button>
-        <Button type="submit" onClick={this.bePlayer2}>Player 2</Button>
-        <canvas id="imCanvas" ref="dest" style={{'backgroundColor':'white'}}/>
-        <h2>P1?: {this.player1Ready} P2? {this.player2Ready} </h2>
-        <h2>You are p1?: {this.isPlayer1} </h2>
+        <canvas id="imCanvas" ref="dest" style={{'backgroundColor': '#24f2bf'}}/>
       </div>
     </Segment>
     
     )
   }
 }
+
+//, 'backgroundImage': 'url("https://www.transparenttextures.com/patterns/3px-tile.png")'
 
 export default Game
